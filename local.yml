@@ -1,5 +1,4 @@
 version: "3.9"
-
 services:
     api:
         build:
@@ -13,8 +12,6 @@ services:
             - media_volume:/app/mediafiles
         expose:
             - "8000"
-        ports:
-            - "8000:8000"
         env_file:
             - ./.envs/.local/.django
             - ./.envs/.local/.postgres
@@ -23,7 +20,6 @@ services:
             - mailhog
         networks:
             - authors-api-live
-
     postgres:
         build:
             context: .
@@ -36,7 +32,6 @@ services:
             - ./.envs/.local/.postgres
         networks:
             - authors-api-live
-
     mailhog:
         image: mailhog/mailhog:v1.0.0
         container_name: mailhog
@@ -45,10 +40,24 @@ services:
         networks:
             - authors-api-live
 
+    nginx:
+        restart: always
+        depends_on:
+            - api
+        volumes:
+            - static_volume:/app/staticfiles
+            - media_volume:/app/mediafiles
+        build:
+            context: ./docker/local/nginx
+            dockerfile: Dockerfile
+        ports:
+            - "80:80"
+        networks:
+            - authors-api-live
+
 networks:
     authors-api-live:
         driver: bridge
-
 volumes:
     local_postgres_data: {}
     local_postgres_data_backups: {}
